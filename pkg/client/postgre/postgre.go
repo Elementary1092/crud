@@ -1,0 +1,5 @@
+package postgre
+
+func NewClient() {
+
+}

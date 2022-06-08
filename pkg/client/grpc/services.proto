@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+package services;
+
+service crudService {
+
+}
+
+service fetchService {
+
+}
+
+message fetchedPostDTO {
+
+}
+
+message savePostDTO {
+
+}
+
+message updatePostDTO {
+
+}
