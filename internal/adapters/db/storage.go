@@ -35,7 +35,7 @@ func (s *storage) GetOne(ctx context.Context, id int32) (*domain.Post, error) {
 	return &post, err
 }
 
-func (s *storage) GetAll(ctx context.Context) ([]domain.Post, error) {
+func (s *storage) GetAll(ctx context.Context) ([]*domain.Post, error) {
 	query := `SELECT id, user_id, title, body FROM posts;`
 	s.logger.Traceln(query)
 
@@ -47,7 +47,7 @@ func (s *storage) GetAll(ctx context.Context) ([]domain.Post, error) {
 	return s.scanRows(rows)
 }
 
-func (s *storage) GetAllByUserId(ctx context.Context, id int32) ([]domain.Post, error) {
+func (s *storage) GetAllByUserId(ctx context.Context, id int32) ([]*domain.Post, error) {
 	query := `SELECT id, user_id, title, body FROM posts WHERE user_id = $1;`
 	s.logger.Traceln(query)
 
@@ -116,11 +116,11 @@ func (s *storage) checkAndLogError(err error) error {
 	return nil
 }
 
-func (s *storage) scanRows(rows pgx.Rows) ([]domain.Post, error) {
-	posts := make([]domain.Post, 0)
+func (s *storage) scanRows(rows pgx.Rows) ([]*domain.Post, error) {
+	posts := make([]*domain.Post, 0)
 
 	for rows.Next() {
-		var post domain.Post
+		var post *domain.Post
 
 		err := rows.Scan(&post.Id, &post.UserId, &post.Title, &post.Body)
 		if err != nil {
