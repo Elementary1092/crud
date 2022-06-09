@@ -49,7 +49,8 @@ func init() {
 	l.Formatter = &logrus.TextFormatter{
 		CallerPrettyfier: func(frame *runtime.Frame) (function string, file string) {
 			filename := path.Base(frame.File)
-			return fmt.Sprintf("%s()", frame.Func.Name()), fmt.Sprintf("%s:%d", filename, frame.Line)
+			return fmt.Sprintf("%s()", frame.Func.Name()),
+				fmt.Sprintf("%s:%d", filename, frame.Line)
 		},
 		DisableColors: true,
 		FullTimestamp: true,
@@ -61,7 +62,11 @@ func init() {
 		panic(err)
 	}
 
-	logsFile, err := os.OpenFile("logs/logs.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0640)
+	logsFile, err := os.OpenFile("logs/logs.log",
+		os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0640)
+	if err != nil {
+		panic(err)
+	}
 
 	l.SetOutput(io.Discard)
 
