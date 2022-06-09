@@ -1,0 +1,9 @@
+listen:
+  port: 9000
+  address: localhost
+
+db:
+  port: 5432
+  address: localhost
+  username: postgres
+  password: 1029384756
