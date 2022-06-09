@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/elem1092/crud/internal/adapters"
 	"github.com/elem1092/crud/internal/domain"
 	services "github.com/elem1092/crud/pkg/client/grpc"
 	"github.com/elem1092/crud/pkg/logging"
@@ -16,16 +15,17 @@ var (
 	ErrIllegalOperation = errors.New("illegal operation")
 )
 
-type handler struct {
-	service Service
+type server struct {
+	service domain.Service
 	logger  *logging.Logger
+	services.UnimplementedCRUDServiceServer
 }
 
-func NewHandler(service Service, logger *logging.Logger) adapters.Handler {
-	return &handler{service, logger}
+func NewServer(service domain.Service, logger *logging.Logger) services.CRUDServiceServer {
+	return &server{service, logger, services.UnimplementedCRUDServiceServer{}}
 }
 
-func (h *handler) SavePost(ctx context.Context,
+func (h *server) SavePost(ctx context.Context,
 	in *services.SavePostDTO) (*services.PostDTO, error) {
 	h.logger.Info("Handling save request")
 	if in.GetContent() == nil {
@@ -49,7 +49,7 @@ func (h *handler) SavePost(ctx context.Context,
 	return domainPostToPostDTO(saved), nil
 }
 
-func (h *handler) GetPosts(ctx context.Context, in *services.GetPostsRequest) (*services.GetPostsResponse, error) {
+func (h *server) GetPosts(ctx context.Context, in *services.GetPostsRequest) (*services.GetPostsResponse, error) {
 	h.logger.Info("Handling get posts request")
 	requestType := *(in.GetNeeded().Enum())
 
@@ -88,7 +88,7 @@ func (h *handler) GetPosts(ctx context.Context, in *services.GetPostsRequest) (*
 	return &services.GetPostsResponse{Posts: posts}, nil
 }
 
-func (h *handler) DeletePost(ctx context.Context,
+func (h *server) DeletePost(ctx context.Context,
 	in *services.DeleteRequest) (*services.ErrorResponse, error) {
 	h.logger.Info("Handling delete request")
 	id := in.GetId()
@@ -105,7 +105,7 @@ func (h *handler) DeletePost(ctx context.Context,
 	return nil, nil
 }
 
-func (h *handler) UpdatePost(ctx context.Context,
+func (h *server) UpdatePost(ctx context.Context,
 	in *services.UpdatePostDTO) (*services.ErrorResponse, error) {
 	h.logger.Info("Handling delete request")
 	id := in.GetId()

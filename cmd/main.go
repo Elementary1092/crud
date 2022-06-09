@@ -1,9 +1,48 @@
 package main
 
-import "github.com/elem1092/crud/pkg/logging"
+import (
+	"fmt"
+	"github.com/elem1092/crud/internal/adapters/api"
+	"github.com/elem1092/crud/internal/adapters/db"
+	"github.com/elem1092/crud/internal/config"
+	services "github.com/elem1092/crud/pkg/client/grpc"
+	"github.com/elem1092/crud/pkg/client/postgre"
+	"github.com/elem1092/crud/pkg/logging"
+	"golang.org/x/net/context"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
+	"net"
+	"time"
+)
 
 func main() {
-	//entry point
 	logger := logging.GetLogger()
-	logger.Info("Some log")
+	logger.Info("Starting the CRUD service")
+
+	cfg := config.GetConfiguration()
+
+	ctx, _ := context.WithTimeout(context.Background(), 2*time.Minute)
+	dbClient, err := postgre.NewClient(ctx, cfg.DBCfg)
+	if err != nil {
+		logger.Fatalf("Unable to start server due to: %v", err)
+	}
+	logger.Info("Successfully connected to database")
+
+	storage := db.NewPostgreSQLStorage(dbClient, logger)
+
+	service := api.NewService(storage)
+
+	logger.Infof("Initializing server on port: %s", cfg.Listen.Port)
+	server := api.NewServer(service, logger)
+	listener, err := net.Listen("tcp", fmt.Sprintf("%s:%s", cfg.Listen.Address, cfg.Listen.Port))
+	if err != nil {
+		logger.Fatalf("Unable to start server due to: %v", err)
+	}
+
+	grpcServer := grpc.NewServer()
+	services.RegisterCRUDServiceServer(grpcServer, server)
+
+	reflection.Register(grpcServer)
+
+	logger.Fatalf("Server is down due to: %v", grpcServer.Serve(listener))
 }
