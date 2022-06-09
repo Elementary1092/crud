@@ -22,7 +22,7 @@ func NewPostgreSQLStorage(client postgre.Client, logger *logging.Logger) domain.
 	}
 }
 
-func (s *storage) GetOne(ctx context.Context, id int64) (*domain.Post, error) {
+func (s *storage) GetOne(ctx context.Context, id int32) (*domain.Post, error) {
 	query := `SELECT id, user_id, title, body FROM posts WHERE id = $1;`
 	s.logger.Traceln(query)
 
@@ -47,7 +47,7 @@ func (s *storage) GetAll(ctx context.Context) ([]domain.Post, error) {
 	return s.scanRows(rows)
 }
 
-func (s *storage) GetAllByUserId(ctx context.Context, id int64) ([]domain.Post, error) {
+func (s *storage) GetAllByUserId(ctx context.Context, id int32) ([]domain.Post, error) {
 	query := `SELECT id, user_id, title, body FROM posts WHERE user_id = $1;`
 	s.logger.Traceln(query)
 
@@ -84,7 +84,7 @@ func (s *storage) Update(ctx context.Context, post domain.Post) error {
 	return nil
 }
 
-func (s *storage) Delete(ctx context.Context, id int64) error {
+func (s *storage) Delete(ctx context.Context, id int32) error {
 	query := `DELETE FROM posts WHERE id = $1;`
 	s.logger.Traceln(query)
 
@@ -137,4 +137,8 @@ func (s *storage) scanRows(rows pgx.Rows) ([]domain.Post, error) {
 	}
 
 	return posts, nil
+}
+
+func (s *storage) Close() {
+	s.db.Close()
 }
