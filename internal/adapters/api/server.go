@@ -49,43 +49,62 @@ func (h *server) SavePost(ctx context.Context,
 	return domainPostToPostDTO(saved), nil
 }
 
-func (h *server) GetPosts(ctx context.Context, in *services.GetPostsRequest) (*services.GetPostsResponse, error) {
+func (h *server) GetPosts(in *services.GetPostsRequest, stream services.CRUDService_GetPostsServer) error {
 	h.logger.Info("Handling get posts request")
 	requestType := *(in.GetNeeded().Enum())
 
-	posts := make([]*services.PostDTO, 1)
 	switch requestType {
 	case 0:
 		if in.GetId() <= 0 {
-
+			h.logger.Errorf("Got illegal id value: %d", in.GetId())
+			return ErrIllegalOperation
 		}
-		h.logger.Info("Getting post by its id: %d", in.GetId())
-		post, err := h.service.GetPostById(ctx, in.GetId())
+		h.logger.Infof("Getting post by its id: %d", in.GetId())
+		post, err := h.service.GetPostById(context.Background(), in.GetId())
 		if err != nil {
-			return nil, err
+			return err
 		}
 
-		posts[0] = domainPostToPostDTO(post)
+		if err := stream.Send(domainPostToPostDTO(post)); err != nil {
+			h.logger.Errorf("Error while sending data to the client: %v", err)
+			return err
+		}
 	case 1:
-		postsFromDB, err := h.service.GetPostsByUserId(ctx, in.GetId())
+		if in.GetId() <= 0 {
+			h.logger.Errorf("Got illegal id value: %d", in.GetId())
+			return ErrIllegalOperation
+		}
+		h.logger.Infof("Getting post by user's id: %d", in.GetId())
+		postsFromDB, err := h.service.GetPostsByUserId(context.Background(), in.GetId())
 		if err != nil {
-			return nil, err
+			return err
 		}
 
-		posts = convertDomainPostsToPostsDTO(postsFromDB)
+		for _, post := range convertDomainPostsToPostsDTO(postsFromDB) {
+			if err := stream.Send(post); err != nil {
+				h.logger.Errorf("Error while sending data to the client: %v", err)
+				return err
+			}
+		}
 	case 2:
-		postsFromDB, err := h.service.GetAllPosts(ctx)
+		h.logger.Info("Getting all posts")
+		postsFromDB, err := h.service.GetAllPosts(context.Background())
 		if err != nil {
-			return nil, err
+			return err
 		}
 
-		posts = convertDomainPostsToPostsDTO(postsFromDB)
+		for _, post := range convertDomainPostsToPostsDTO(postsFromDB) {
+			if err := stream.Send(post); err != nil {
+				h.logger.Errorf("Error while sending data to the client: %v", err)
+				return err
+			}
+		}
 	default:
 		h.logger.Warnf("Got unknown number from enum: %d", requestType)
-		return nil, ErrUnknownOperation
+		return ErrUnknownOperation
 	}
 
-	return &services.GetPostsResponse{Posts: posts}, nil
+	return nil
 }
 
 func (h *server) DeletePost(ctx context.Context,

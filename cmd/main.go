@@ -21,7 +21,9 @@ func main() {
 
 	cfg := config.GetConfiguration()
 
-	ctx, _ := context.WithTimeout(context.Background(), 2*time.Minute)
+	ctx, cancelFunc := context.WithTimeout(context.Background(), 2*time.Minute)
+	defer cancelFunc()
+
 	dbClient, err := postgre.NewClient(ctx, cfg.DBCfg)
 	if err != nil {
 		logger.Fatalf("Unable to start server due to: %v", err)

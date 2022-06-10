@@ -23,7 +23,7 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type CRUDServiceClient interface {
 	SavePost(ctx context.Context, in *SavePostDTO, opts ...grpc.CallOption) (*PostDTO, error)
-	GetPosts(ctx context.Context, in *GetPostsRequest, opts ...grpc.CallOption) (*GetPostsResponse, error)
+	GetPosts(ctx context.Context, in *GetPostsRequest, opts ...grpc.CallOption) (CRUDService_GetPostsClient, error)
 	DeletePost(ctx context.Context, in *DeleteRequest, opts ...grpc.CallOption) (*ErrorResponse, error)
 	UpdatePost(ctx context.Context, in *UpdatePostDTO, opts ...grpc.CallOption) (*ErrorResponse, error)
 }
@@ -45,13 +45,36 @@ func (c *cRUDServiceClient) SavePost(ctx context.Context, in *SavePostDTO, opts 
 	return out, nil
 }
 
-func (c *cRUDServiceClient) GetPosts(ctx context.Context, in *GetPostsRequest, opts ...grpc.CallOption) (*GetPostsResponse, error) {
-	out := new(GetPostsResponse)
-	err := c.cc.Invoke(ctx, "/services.CRUDService/GetPosts", in, out, opts...)
+func (c *cRUDServiceClient) GetPosts(ctx context.Context, in *GetPostsRequest, opts ...grpc.CallOption) (CRUDService_GetPostsClient, error) {
+	stream, err := c.cc.NewStream(ctx, &CRUDService_ServiceDesc.Streams[0], "/services.CRUDService/GetPosts", opts...)
 	if err != nil {
 		return nil, err
 	}
-	return out, nil
+	x := &cRUDServiceGetPostsClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type CRUDService_GetPostsClient interface {
+	Recv() (*PostDTO, error)
+	grpc.ClientStream
+}
+
+type cRUDServiceGetPostsClient struct {
+	grpc.ClientStream
+}
+
+func (x *cRUDServiceGetPostsClient) Recv() (*PostDTO, error) {
+	m := new(PostDTO)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
 }
 
 func (c *cRUDServiceClient) DeletePost(ctx context.Context, in *DeleteRequest, opts ...grpc.CallOption) (*ErrorResponse, error) {
@@ -77,7 +100,7 @@ func (c *cRUDServiceClient) UpdatePost(ctx context.Context, in *UpdatePostDTO, o
 // for forward compatibility
 type CRUDServiceServer interface {
 	SavePost(context.Context, *SavePostDTO) (*PostDTO, error)
-	GetPosts(context.Context, *GetPostsRequest) (*GetPostsResponse, error)
+	GetPosts(*GetPostsRequest, CRUDService_GetPostsServer) error
 	DeletePost(context.Context, *DeleteRequest) (*ErrorResponse, error)
 	UpdatePost(context.Context, *UpdatePostDTO) (*ErrorResponse, error)
 	mustEmbedUnimplementedCRUDServiceServer()
@@ -90,8 +113,8 @@ type UnimplementedCRUDServiceServer struct {
 func (UnimplementedCRUDServiceServer) SavePost(context.Context, *SavePostDTO) (*PostDTO, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SavePost not implemented")
 }
-func (UnimplementedCRUDServiceServer) GetPosts(context.Context, *GetPostsRequest) (*GetPostsResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetPosts not implemented")
+func (UnimplementedCRUDServiceServer) GetPosts(*GetPostsRequest, CRUDService_GetPostsServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetPosts not implemented")
 }
 func (UnimplementedCRUDServiceServer) DeletePost(context.Context, *DeleteRequest) (*ErrorResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeletePost not implemented")
@@ -130,22 +153,25 @@ func _CRUDService_SavePost_Handler(srv interface{}, ctx context.Context, dec fun
 	return interceptor(ctx, in, info, handler)
 }
 
-func _CRUDService_GetPosts_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetPostsRequest)
-	if err := dec(in); err != nil {
-		return nil, err
+func _CRUDService_GetPosts_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(GetPostsRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
 	}
-	if interceptor == nil {
-		return srv.(CRUDServiceServer).GetPosts(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/services.CRUDService/GetPosts",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CRUDServiceServer).GetPosts(ctx, req.(*GetPostsRequest))
-	}
-	return interceptor(ctx, in, info, handler)
+	return srv.(CRUDServiceServer).GetPosts(m, &cRUDServiceGetPostsServer{stream})
+}
+
+type CRUDService_GetPostsServer interface {
+	Send(*PostDTO) error
+	grpc.ServerStream
+}
+
+type cRUDServiceGetPostsServer struct {
+	grpc.ServerStream
+}
+
+func (x *cRUDServiceGetPostsServer) Send(m *PostDTO) error {
+	return x.ServerStream.SendMsg(m)
 }
 
 func _CRUDService_DeletePost_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -196,10 +222,6 @@ var CRUDService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _CRUDService_SavePost_Handler,
 		},
 		{
-			MethodName: "GetPosts",
-			Handler:    _CRUDService_GetPosts_Handler,
-		},
-		{
 			MethodName: "DeletePost",
 			Handler:    _CRUDService_DeletePost_Handler,
 		},
@@ -208,6 +230,12 @@ var CRUDService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _CRUDService_UpdatePost_Handler,
 		},
 	},
-	Streams:  []grpc.StreamDesc{},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "GetPosts",
+			Handler:       _CRUDService_GetPosts_Handler,
+			ServerStreams: true,
+		},
+	},
 	Metadata: "CRUDService.proto",
 }

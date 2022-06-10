@@ -26,7 +26,7 @@ func (s *storage) GetOne(ctx context.Context, id int32) (*domain.Post, error) {
 	query := `SELECT id, user_id, title, body FROM posts WHERE id = $1;`
 	s.logger.Traceln(query)
 
-	var post domain.Post
+	post := domain.Post{}
 	err := s.db.QueryRow(ctx, query, id).Scan(&post.Id, &post.UserId, &post.Title, &post.Body)
 	if err = s.checkAndLogError(err); err != nil {
 		return nil, err
@@ -120,7 +120,7 @@ func (s *storage) scanRows(rows pgx.Rows) ([]*domain.Post, error) {
 	posts := make([]*domain.Post, 0)
 
 	for rows.Next() {
-		var post *domain.Post
+		post := &domain.Post{}
 
 		err := rows.Scan(&post.Id, &post.UserId, &post.Title, &post.Body)
 		if err != nil {
