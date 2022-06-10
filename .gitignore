@@ -5,6 +5,6 @@
 *.dylib
 *.out
 *.test
-*.log
+logs/
 .idea/
 go.work
