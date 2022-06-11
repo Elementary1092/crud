@@ -1,12 +1,16 @@
 FROM golang:latest
 
-RUN go install github.com/Elementary1092/crud@latest
+ENV GO111MODULE=on
+
 RUN git clone --depth 1 https://github.com/Elementary1092/crud
 
-ENV GO111MODULE=on
-ENV APP_DIR /crud/build
+WORKDIR /crud
 
-RUN go build -o $APP_DIR /crud
+COPY go.mod go.sum ./
+RUN go mod download
+COPY . .
+
+RUN go build -o build/ cmd/main.go
 
 EXPOSE 8081
-CMD ["/crud/build"]
+CMD ["build/main"]
