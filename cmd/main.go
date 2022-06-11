@@ -2,12 +2,12 @@ package main
 
 import (
 	"fmt"
-	"github.com/elem1092/crud/internal/adapters/api"
-	"github.com/elem1092/crud/internal/adapters/db"
-	"github.com/elem1092/crud/internal/config"
-	services "github.com/elem1092/crud/pkg/client/grpc"
-	"github.com/elem1092/crud/pkg/client/postgre"
-	"github.com/elem1092/crud/pkg/logging"
+	"github.com/Elementary1092/crud/internal/adapters/api"
+	"github.com/Elementary1092/crud/internal/adapters/db"
+	"github.com/Elementary1092/crud/internal/config"
+	services "github.com/Elementary1092/crud/pkg/client/grpc"
+	"github.com/Elementary1092/crud/pkg/client/postgre"
+	"github.com/Elementary1092/crud/pkg/logging"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"

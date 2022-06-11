@@ -3,9 +3,9 @@ package db
 import (
 	"context"
 	"errors"
-	"github.com/elem1092/crud/internal/domain"
-	"github.com/elem1092/crud/pkg/client/postgre"
-	"github.com/elem1092/crud/pkg/logging"
+	"github.com/Elementary1092/crud/internal/domain"
+	"github.com/Elementary1092/crud/pkg/client/postgre"
+	"github.com/Elementary1092/crud/pkg/logging"
 	"github.com/jackc/pgconn"
 	"github.com/jackc/pgx/v4"
 )

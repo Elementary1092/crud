@@ -4,9 +4,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/elem1092/crud/internal/domain"
-	services "github.com/elem1092/crud/pkg/client/grpc"
-	"github.com/elem1092/crud/pkg/logging"
+	"github.com/Elementary1092/crud/internal/domain"
+	services "github.com/Elementary1092/crud/pkg/client/grpc"
+	"github.com/Elementary1092/crud/pkg/logging"
 )
 
 var (

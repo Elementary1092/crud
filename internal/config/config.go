@@ -1,7 +1,7 @@
 package config
 
 import (
-	"github.com/elem1092/crud/pkg/logging"
+	"github.com/Elementary1092/crud/pkg/logging"
 	"github.com/ilyakaznacheev/cleanenv"
 	"sync"
 )

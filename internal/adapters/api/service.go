@@ -2,7 +2,7 @@ package api
 
 import (
 	"context"
-	"github.com/elem1092/crud/internal/domain"
+	"github.com/Elementary1092/crud/internal/domain"
 )
 
 type service struct {

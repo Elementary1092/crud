@@ -1,4 +1,4 @@
-module github.com/elem1092/crud
+module github.com/Elementary1092/crud
 
 go 1.18
 

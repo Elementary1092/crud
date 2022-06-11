@@ -3,8 +3,8 @@ package postgre
 import (
 	"context"
 	"fmt"
-	"github.com/elem1092/crud/internal/config"
-	"github.com/elem1092/crud/pkg/logging"
+	"github.com/Elementary1092/crud/internal/config"
+	"github.com/Elementary1092/crud/pkg/logging"
 	"github.com/jackc/pgconn"
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
