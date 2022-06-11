@@ -121,7 +121,7 @@ func (h *server) DeletePost(ctx context.Context,
 		return &services.ErrorResponse{Error: err.Error()}, err
 	}
 
-	return nil, nil
+	return &services.ErrorResponse{Error: "No error"}, nil
 }
 
 func (h *server) UpdatePost(ctx context.Context,
@@ -150,7 +150,7 @@ func (h *server) UpdatePost(ctx context.Context,
 		return &services.ErrorResponse{Error: err.Error()}, err
 	}
 
-	return nil, nil
+	return &services.ErrorResponse{Error: "No error"}, nil
 }
 
 func domainPostToPostDTO(post *domain.Post) *services.PostDTO {
