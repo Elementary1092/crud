@@ -1,10 +1,10 @@
 listen:
   port: 8081
-  address: localhost
+  address: 127.0.0.1
 
 db:
   port: 5432
-  address: localhost
+  address: 127.0.0.1
   username: postgres
   password: 1029384756
   name: demo
