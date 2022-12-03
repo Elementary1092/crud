@@ -55,6 +55,7 @@ func (s *storage) GetAllByUserId(ctx context.Context, id int32) ([]*domain.Post,
 	if err = s.checkAndLogError(err); err != nil {
 		return nil, err
 	}
+	defer rows.Close()
 
 	return s.scanRows(rows)
 }
